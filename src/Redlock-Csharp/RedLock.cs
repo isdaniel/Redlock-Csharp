@@ -7,6 +7,7 @@ namespace Redlock_Csharp
     public class RedLock
     {
         private IConnectionMultiplexer _connection;
+        private string _keyId;
         const string UNLOCK_SCRIPT = @"
             if redis.call(""get"",KEYS[1]) == ARGV[1] then
                 return redis.call(""del"",KEYS[1])
@@ -17,21 +18,19 @@ namespace Redlock_Csharp
         public RedLock(IConnectionMultiplexer connection)
         {
             _connection = connection;
+            _keyId = $"{Guid.NewGuid().ToString()}-Tid:{Thread.CurrentThread.ManagedThreadId}";
         }
-        private string GetUniqueId(){            
-            return $"{Guid.NewGuid().ToString()}-Tid:{Thread.CurrentThread.ManagedThreadId}";
-        }
+
         public bool LockInstance(string resource, TimeSpan ttl, out LockObject lockObject)
         {   
             bool result;
-            string keyId = GetUniqueId();
-            lockObject = new LockObject(resource,keyId,ttl);
+            lockObject = new LockObject(resource, _keyId, ttl);
             try
             {
                 
                 do
                 {
-                    result = _connection.GetDatabase().StringSet(resource, keyId, ttl, When.NotExists);
+                    result = _connection.GetDatabase().StringSet(resource, _keyId, ttl, When.NotExists);
                     
                     if(!result)
                         WaitForLock(resource);
@@ -55,10 +54,10 @@ namespace Redlock_Csharp
             }
         }
 
-        public void UnlockInstance(string resource, byte[] val)
+        public void UnlockInstance(string resource)
         {
             RedisKey[] keys = { resource };
-            RedisValue[] values = { val };
+            RedisValue[] values = { _keyId };
             _connection.GetDatabase().ScriptEvaluate(
                 UNLOCK_SCRIPT,
                 keys,
