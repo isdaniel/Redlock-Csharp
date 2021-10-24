@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:5.0.6
+    ports:
+      - "6379:6379"
+  nginx:
+    image: nginx
+    ports:
+    - "8080:80"
+    environment:
+    - NGINX_HOST=shopping.com
+    - NGINX_PORT=80
+    volumes: 
+    - "./sample/nginx/conifg/nginx.conf:/etc/nginx/nginx.conf:ro"
+  shop1:
+    build:
+      context: .
+      dockerfile: 'sample/shopping-web/dockerfile'
+    hostname: shop1
+  shop2:
+    build:
+      context: .
+      dockerfile: 'sample/shopping-web/dockerfile'
+    hostname: shop2
+  shop3:
+    build:
+      context: .
+      dockerfile: 'sample/shopping-web/dockerfile'
+    hostname: shop3
