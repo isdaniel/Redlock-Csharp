@@ -64,7 +64,6 @@ namespace shopping_web.Controllers
             string result = $"{Dns.GetHostName()} 處理貨物狀態!! {productMsg}";
             _logger.LogInformation(result);
             return result;
-           
         }
     }
 }

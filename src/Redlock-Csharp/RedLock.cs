@@ -50,7 +50,7 @@ namespace Redlock_Csharp
             var waitTime = _connection.GetDatabase().KeyTimeToLive(resource);
 
             if(waitTime.HasValue){
-                Thread.Sleep(waitTime.Value.Milliseconds);
+                SpinWait.SpinUntil(()=>true,waitTime.Value.Milliseconds);
             }
         }
 
